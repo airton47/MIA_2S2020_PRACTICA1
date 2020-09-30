@@ -4,6 +4,8 @@
 Mostrar el nombre del proveedor, número de teléfono, número de orden,
 total de la orden por la cual se haya pagado la mayor cantidad de dinero.
 */
+select nombre as nombre_proveedor,telefono,id_orden from PERSONA
+select nombre as nombre_proveedor,telefono,id_orden,max(cantidad*precio_unitario) as monto_total from PRODUCTO,PERSONA,PEDIDO WHERE PEDIDO.id_producto = PRODUCTO.id_producto;
 
 /*CONSULTA_2:
 Mostrar el número de cliente, nombre, apellido y total del cliente que más
