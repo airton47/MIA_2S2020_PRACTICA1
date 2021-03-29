@@ -1,29 +1,29 @@
 use p1mia;
 
 CREATE TABLE TEMPORAL (
-    NOMBRE_ASOCIADO varchar(50),
-    APELLIDO_ASOCIADO varchar(50),
-    DIRECCION_VICTIMA varchar(100),
+    NOMBRE_VICTIMA varchar(75),
+    APELLIDO_VICTIMA varchar(75),
+    DIRECCION_VICTIMA varchar(75),
     FECHA_PRIMERA_SOSPECHA datetime,
     FECHA_CONFIRMACION datetime,
     FECHA_MUERTE datetime,
-    ESTADO_VICTIMA varchar(50),
-    NOMBRE_ASOCIADO varchar(50),
-    APELLIDO_ASOCIADO varchar(50),    
+    ESTADO_VICTIMA varchar(75),
+    NOMBRE_ASOCIADO varchar(75),
+    APELLIDO_ASOCIADO varchar(75),
     FECHA_CONOCIO datetime,
-    CONTACTO_FISICO varchar(50),
+    CONTACTO_FISICO varchar(75),
     FECHA_INICIO_CONTACTO datetime,
     FECHA_FIN_CONTACTO datetime,
-    NOMBRE_HOSPITAL varchar(50),
-    DIRECCION_HOSPITAL varchar(100),
-    UBICACION_VICTIMA  varchar(100),
+    NOMBRE_HOSPITAL varchar(75),
+    DIRECCION_HOSPITAL varchar(75),
+    UBICACION_VICTIMA varchar(75),
     FECHA_LLEGADA datetime,
     FECHA_RETIRO datetime,
-    TRATAMIENTO  varchar(50),
+    TRATAMIENTO varchar(75),
     EFECTIVIDAD int,
     FECHA_INICIO_TRATAMIENTO datetime,
     FECHA_FIN_TRATAMIENTO datetime,
-    EFECTIVIDAD_EN_VICTIMA datetime,
+    EFECTIVIDAD_EN_VICTIMA int
 );
 
 CREATE TABLE HOSPITAL(
