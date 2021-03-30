@@ -1,3 +1,5 @@
+create database p1mia;
+
 use p1mia;
 
 CREATE TABLE TEMPORAL (
@@ -27,39 +29,39 @@ CREATE TABLE TEMPORAL (
 );
 
 CREATE TABLE HOSPITAL(
-    id_hospital int not null,
+    id_hospital int not null AUTO_INCREMENT,
     nombre varchar(45),
     CONSTRAINT pk_hospital PRIMARY KEY (id_hospital)
 );
 
 CREATE TABLE TIPO_CONTACTO (
-    id_tipoContacto int not null,
+    id_tipoContacto int not null AUTO_INCREMENT,
     tipoContacto varchar(45),
     CONSTRAINT pk_tipoContacto PRIMARY KEY (id_tipoContacto)
 );
 
 CREATE TABLE ESTADO_VICTIMA (
-    id_estado int not null,
+    id_estado int not null AUTO_INCREMENT,
     estado varchar(45),
-    fecha_registro datetime,
-    facha_muerte datetime,
     CONSTRAINT pk_estado PRIMARY KEY (id_estado)
 );
 
 CREATE TABLE PERSONA_ASOCIADA (
-    id_personaAsociada int not null,
+    id_personaAsociada int not null AUTO_INCREMENT,
     nombre varchar(45),
     apellido varchar(45),
     CONSTRAINT pk_personaAsociada PRIMARY KEY (id_personaAsociada)
 );
 
 CREATE TABLE VICTIMA (
-    id_victima int not null,
+    id_victima int not null AUTO_INCREMENT,
     nombre varchar(45),
     apellido varchar(45),
     cod_estado int,
+    fecha_registro datetime,
+    facha_muerte datetime,
     CONSTRAINT pk_victima PRIMARY KEY (id_victima),
-    CONSTRAINT fk_estado_victima PRIMARY KEY (id_tratamiento) REFERENCES ESTADO_VICTIMA (id_estado)
+    CONSTRAINT fk_estado_victima PRIMARY KEY (cod_estado) REFERENCES ESTADO_VICTIMA (id_estado)
 );
 
 CREATE TABLE DETALLE_VICTIMA_ASOCIADO (
@@ -75,18 +77,19 @@ CREATE TABLE DETALLE_VICTIMA_ASOCIADO (
 );
 
 CREATE TABLE TRATAMIENTO(
-    id_tratamiento int not null,
-    tratamiento varchar(100)
+    id_tratamiento int not null AUTO_INCREMENT,
+    tratamiento varchar(100),
+    efectividad int,
     CONSTRAINT pk_tratamiento PRIMARY KEY (id_tratamiento)
 );
 
 CREATE TABLE UBICACION (
-    cod_ubicacion int,
+    cod_ubicacion int not null AUTO_INCREMENT,
     CONSTRAINT pk_ubicacion PRIMARY KEY (cod_ubicacion)
 );
 
 CREATE TABLE REGISTRO (
-    id_registro int not null,
+    id_registro int not null AUTO_INCREMENT,
     cod_victima int,
     entrada datetime,
     salida datetime
