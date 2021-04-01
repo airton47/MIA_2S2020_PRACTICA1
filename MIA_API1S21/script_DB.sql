@@ -28,10 +28,18 @@ CREATE TABLE TEMPORAL (
     EFECTIVIDAD_EN_VICTIMA int
 );
 
+CREATE TABLE UBICACION (
+    id_ubicacion int not null AUTO_INCREMENT,
+    ubicacion varchar(50),
+    CONSTRAINT pk_ubicacion PRIMARY KEY (cod_ubicacion)
+);
+
 CREATE TABLE HOSPITAL(
     id_hospital int not null AUTO_INCREMENT,
-    nombre varchar(45),
-    CONSTRAINT pk_hospital PRIMARY KEY (id_hospital)
+    hospital varchar(45),
+    cod_ubicacion int,
+    CONSTRAINT pk_hospital PRIMARY KEY (id_hospital),
+    CONSTRAINT fk_ubicacion_hospital FOREIGN KEY (cod_ubicacion) REFERENCES UBICACION (id_ubicacion)
 );
 
 CREATE TABLE TIPO_CONTACTO (
@@ -83,10 +91,7 @@ CREATE TABLE TRATAMIENTO(
     CONSTRAINT pk_tratamiento PRIMARY KEY (id_tratamiento)
 );
 
-CREATE TABLE UBICACION (
-    cod_ubicacion int not null AUTO_INCREMENT,
-    CONSTRAINT pk_ubicacion PRIMARY KEY (cod_ubicacion)
-);
+
 
 CREATE TABLE REGISTRO (
     id_registro int not null AUTO_INCREMENT,

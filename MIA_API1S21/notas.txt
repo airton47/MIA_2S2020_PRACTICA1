@@ -1,0 +1,12 @@
+->para consulta 8 que dice:
+Mostrar el número de mes ,de la fecha de la primera sospecha, nombre y
+apellido de las víctimas que más tratamientos se han aplicado y las que
+menos. (Todo en una sola consulta)
+Deben hacer un top 5 de los que más y un top 5 de los que menos y realizar 
+una unión, la consulta final tendría que mostrar 10 registros.
+
+->la consulta 4 que dice:
+Mostrar el nombre y apellido de todas las víctimas en estado “Suspendida” 
+que tuvieron contacto físico de tipo “Beso” con más de 2 de sus asociados.
+Ocurrió un error de redacción por lo que en estado ya no es "Suspedida"
+sino que debe ser "Sospecha"
