@@ -29,16 +29,20 @@ NOMBRE_HOSPITAL,DIRECCION_HOSPITAL,UBICACION_VICTIMA,@var7,@var8,
 TRATAMIENTO,EFECTIVIDAD,@var9,@var10,
 EFECTIVIDAD_EN_VICTIMA
 )
-set FECHA_PRIMERA_SOSPECHA = STR_TO_DATE (@var1, '%d/%m/%Y %H:%i:%s');
-set FECHA_CONFIRMACION = STR_TO_DATE (@var2, '%d/%m/%Y %H:%i:%s');
-set FECHA_MUERTE = STR_TO_DATE (@var3, '%d/%m/%Y %H:%i:%s');
-set FECHA_CONOCIO = STR_TO_DATE (@var4, '%d/%m/%Y %H:%i:%s');
-set FECHA_INICIO_CONTACTO = STR_TO_DATE (@var5, '%d/%m/%Y %H:%i:%s');
-set FECHA_FIN_CONTACTO = STR_TO_DATE (@var6, '%d/%m/%Y %H:%i:%s');
-set FECHA_LLEGADA = STR_TO_DATE (@var7, '%d/%m/%Y %H:%i:%s');
-set FECHA_RETIRO = STR_TO_DATE (@var8, '%d/%m/%Y %H:%i:%s');
-set FECHA_INICIO_TRATAMIENTO = STR_TO_DATE (@var9, '%d/%m/%Y %H:%i:%s');
-set FECHA_FIN_TRATAMIENTO  = STR_TO_DATE (@var10, '%d/%m/%Y %H:%i:%s');
+set FECHA_PRIMERA_SOSPECHA = STR_TO_DATE (@var1, '%Y-%m-%d %H:%i:%s'),
+	FECHA_CONFIRMACION = STR_TO_DATE (@var2, '%Y-%m-%d %H:%i:%s'),
+	FECHA_MUERTE = STR_TO_DATE (@var3, '%Y-%m-%d %H:%i:%s'),
+	FECHA_CONOCIO = STR_TO_DATE (@var4, '%Y-%m-%d %H:%i:%s'),
+	FECHA_INICIO_CONTACTO = STR_TO_DATE (@var5, '%Y-%m-%d %H:%i:%s'),
+	FECHA_FIN_CONTACTO = STR_TO_DATE (@var6, '%Y-%m-%d %H:%i:%s'),
+	FECHA_LLEGADA = STR_TO_DATE (@var7, '%Y-%m-%d %H:%i:%s'),
+	FECHA_RETIRO = STR_TO_DATE (@var8, '%Y-%m-%d %H:%i:%s'),
+	FECHA_INICIO_TRATAMIENTO = STR_TO_DATE (@var9, '%Y-%m-%d %H:%i:%s'),
+	FECHA_FIN_TRATAMIENTO  = STR_TO_DATE (@var10, '%Y-%m-%d %H:%i:%s');
+
+/*UNA ARREGLO PARA FECHAS INVALIDAS*/
+SET @@time_zone = 'SYSTEM';#Para setear los el formato de fecha hora
+UPDATE TEMPORAL SET FECHA_MUERTE = NULL WHERE CAST(FECHA_MUERTE AS CHAR(20)) = '0000-00-00 00:00:00';
 
 
 /*DEFINICION DE DATOS TABLA UBICACION*/# **
@@ -50,9 +54,17 @@ INSERT INTO UBICACION (ubicacion)
     SELECT DISTINCT UBICACION_VICTIMA FROM TEMPORAL WHERE UBICACION_VICTIMA NOT LIKE '';
 
 /*DEFINICION DE DATOS TABLA HOSPITAL*/# **
-INSERT INTO HOSPITAL (hospital,cod_ubicacion) (
-    SELECT DISTINCT NOMBRE_HOSPITAL, id_ubicacion FROM UBICACION,TEMPORAL 
-    WHERE ubicacion = DIRECCION_HOSPITAL AND NOMBRE_HOSPITAL NOT LIKE ''
+INSERT INTO HOSPITAL (hospital) (
+    SELECT DISTINCT NOMBRE_HOSPITAL FROM TEMPORAL 
+    WHERE NOMBRE_HOSPITAL NOT LIKE ''
+);
+
+/*DEFINICION DE DATOS TABLA DIRECC_HOSPITAL*/
+INSERT INTO DIRECC_HOSPITAL(cod_hospital,cod_ubicacion) (
+    SELECT DISTINCT id_hospital,id_ubicacion FROM HOSPITAL,TEMPORAL,UBICACION
+    WHERE hospital = NOMBRE_HOSPITAL
+    AND DIRECCION_HOSPITAL = ubicacion
+    AND NOMBRE_HOSPITAL != '' AND DIRECCION_HOSPITAL != ''
 );
 
 /*DEFINICION DE DATOS EN TABLA TRATAMIENTO*/#**
@@ -76,12 +88,86 @@ INSERT INTO ESTADO_VICTIMA (estadoVictima) (
     SELECT DISTINCT ESTADO_VICTIMA FROM TEMPORAL WHERE ESTADO_VICTIMA NOT LIKE ''
 );
 
+/*DEFINICION DE DATOS EN VICTIMA*/#**
+#para aquellos que  'SI' fueron internados en hospital
+INSERT INTO VICTIMA (nombre_v,apellido_v,fecha_registro,fecha_confirmacion,
+fecha_muerte,cod_hospital,cod_direccion,cod_estado)
+    SELECT DISTINCT NOMBRE_VICTIMA,APELLIDO_VICTIMA,
+    DATE_FORMAT(FECHA_PRIMERA_SOSPECHA,'%Y-%m-%d %H:%i:%s'),
+    DATE_FORMAT(FECHA_CONFIRMACION,'%Y-%m-%d %H:%i:%s'),
+    DATE_FORMAT(FECHA_MUERTE,'%Y-%m-%d %H:%i:%s'),
+    id_hospital,id_ubicacion,id_estadoVictima
+    FROM TEMPORAL,UBICACION,ESTADO_VICTIMA,HOSPITAL 
+    WHERE NOMBRE_VICTIMA <> '' AND APELLIDO_VICTIMA <> ''
+    AND ubicacion = DIRECCION_VICTIMA
+    AND estadoVictima = TEMPORAL.ESTADO_VICTIMA
+    AND hospital = NOMBRE_HOSPITAL
+;
+#para aquellos que 'NO' fueron internados en hospital
+INSERT INTO VICTIMA (nombre_v,apellido_v,fecha_registro,fecha_confirmacion,
+fecha_muerte,cod_direccion,cod_estado) (
+	SELECT DISTINCT NOMBRE_VICTIMA,APELLIDO_VICTIMA,
+    DATE_FORMAT(FECHA_PRIMERA_SOSPECHA,'%Y-%m-%d %H:%i:%s'),
+    DATE_FORMAT(FECHA_CONFIRMACION,'%Y-%m-%d %H:%i:%s'),
+    DATE_FORMAT(FECHA_MUERTE,'%Y-%m-%d %H:%i:%s'),
+    id_ubicacion,id_estadoVictima
+    FROM TEMPORAL,UBICACION,ESTADO_VICTIMA 
+    WHERE NOMBRE_VICTIMA <> '' AND APELLIDO_VICTIMA <> ''
+    AND ubicacion = DIRECCION_VICTIMA
+    AND estadoVictima = TEMPORAL.ESTADO_VICTIMA 
+    AND NOMBRE_HOSPITAL = ''
+);
 
-/*DEFINICION DE DATOS EN VICTIMA*/
-INSERT INTO VICTIMA (nombre_v,apellido_v,cod_estado) (
+/*DEFINICION DE DATOS EN TABLA QUE CONTIENE LAS UBICACION EN LAS QUE LA VICTIMA HA ESTADO*/#**
+INSERT INTO UBICACION_VICTIMA (cod_victima,cod_ubicacion,fecha_llegada,fecha_retiro) (
+	SELECT DISTINCT id_victima,id_ubicacion,
+    STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s'),
+    STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s')
+	FROM TEMPORAL,UBICACION,VICTIMA
+	WHERE nombre_v = NOMBRE_VICTIMA
+	AND apellido_v = APELLIDO_VICTIMA
+	AND DIRECCION_VICTIMA = ubicacion
+    AND DIRECCION_VICTIMA != ''
+	AND NOMBRE_VICTIMA != ''
+	AND APELLIDO_VICTIMA != ''
+	AND STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s') is not null AND STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s') is not null
 
 );
 
+/*DEFINICION DE DATOS EN TRATAMIENTO_VICTIMA*/
+INSERT INTO TRATAMIENTO_VICTIMA (cod_victima,cod_tratamiento,efectividad_victima,
+fecha_inicio_tratamiento, fecha_fin_tratamiento) (
+	SELECT DISTINCT id_victima, id_tratamiento,EFECTIVIDAD_EN_VICTIMA,
+	DATE_FORMAT(FECHA_INICIO_TRATAMIENTO,'%Y-%m-%d %H:%i:%s'),
+	DATE_FORMAT(FECHA_FIN_TRATAMIENTO,'%Y-%m-%d %H:%i:%s') 
+	FROM VICTIMA,TRATAMIENTO,TEMPORAL
+	WHERE NOMBRE_VICTIMA = nombre_v
+	AND APELLIDO_VICTIMA = apellido_v
+	AND TEMPORAL.TRATAMIENTO = TRATAMIENTO.tratamiento
+	AND NOMBRE_VICTIMA != ''
+	AND APELLIDO_VICTIMA != ''
+	AND STR_TO_DATE(FECHA_INICIO_TRATAMIENTO,'%Y-%m-%d %H:%i:%s') is not null 
+    AND STR_TO_DATE(FECHA_FIN_TRATAMIENTO,'%Y-%m-%d %H:%i:%s') is not null
+
+);
+
+/**/
+INSERT INTO CONOCIDO (cod_victima,cod_asociado,fecha_conocido) (
+SELECT DISTINCT id_victima,id_personaAsociada,
+DATE_FORMAT(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s')
+FROM VICTIMA,PERSONA_ASOCIADA,TEMPORAL
+	WHERE NOMBRE_VICTIMA = nombre_v
+	AND APELLIDO_VICTIMA = apellido_v
+    AND NOMBRE_ASOCIADO = nombreAsociado
+    AND APELLIDO_ASOCIADO = apellidoAsociado
+	AND NOMBRE_VICTIMA != ''
+	AND APELLIDO_VICTIMA != ''
+    AND NOMBRE_ASOCIADO != ''
+    AND APELLIDO_ASOCIADO != ''
+    AND STR_TO_DATE(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s') is not null
+GROUP BY id_victima,id_personaAsociada,DATE_FORMAT(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s')
+    ORDER BY id_victima
+);
 
 #PRUEBA DE ERROR EN TABLA DE HOSPITAL CON UBICACION
 SELECT DISTINCT NOMBRE_HOSPITAL FROM TEMPORAL WHERE NOMBRE_HOSPITAL NOT LIKE '' ORDER BY NOMBRE_HOSPITAL ASC;
