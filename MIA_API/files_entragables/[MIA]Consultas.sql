@@ -30,7 +30,12 @@ Mostrar el número de cliente, nombre, apellido, el número de órdenes que ha
 realizado y el total de cada uno de los cinco clientes que más han comprado
 productos de la categoría ‘Cheese’.
 */
-select id_cliente as Numero_cliente,nombre as Nombre,count(cod_categoria_producto) as Numero_productos,sum(total) as Total_dinero from CLIENTE,COMPRA,DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO WHERE id_cliente = cod_cliente and cod_producto = id_producto and id_categoria_producto = (select id_categoria_producto from CATEGORIA_PRODUCTO WHERE categoria_producto = 'Cheese') and id_compra = cod_compra group by id_cliente,nombre order by Numero_productos desc limit 5;
+select id_cliente as Numero_cliente,nombre as Nombre,count(cod_categoria_producto) as Numero_productos,sum(total) as Total_dinero 
+from CLIENTE,COMPRA,DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO 
+WHERE id_cliente = cod_cliente 
+and cod_producto = id_producto 
+and id_categoria_producto = (select id_categoria_producto from CATEGORIA_PRODUCTO WHERE categoria_producto = 'Cheese') 
+and id_compra = cod_compra group by id_cliente,nombre order by Numero_productos desc limit 5;
 #Done
 
 /*CONSULTA_5
@@ -39,9 +44,15 @@ los clientes que más han comprado y los que menos han comprado (en
 dinero) utilizando una sola consulta.
 cada select es un limit de 5, al final me mostras 10 filas
 */
-(select month(fecha_registro) as Mes_Registro,nombre as Nombre,total as Total from COMPRA,CLIENTE where total = (select max(total) from COMPRA) and id_cliente = cod_cliente)
+(select month(fecha_registro) as Mes_Registro,nombre as Nombre,total as Total 
+	from COMPRA,CLIENTE 
+	where total = (select max(total) from COMPRA) and id_cliente = cod_cliente
+	)
 union
-(select month(fecha_registro) as Mes_Registro,nombre as Nombre,total as Total from COMPRA,CLIENTE where total = (select min(total) from COMPRA) and id_cliente = cod_cliente);
+(select month(fecha_registro) as Mes_Registro,nombre as Nombre,total as Total 
+	from COMPRA,CLIENTE 
+	where total = (select min(total) from COMPRA) and id_cliente = cod_cliente
+	);
 #Done_well
 
 /*CONSULTA_6
@@ -49,9 +60,15 @@ Mostrar el nombre de la categoría más y menos vendida y el total vendido en
 dinero (en una sola consulta).
 clientes
 */
-(select categoria_producto,sum(sub_total),sum(cantidad) from CATEGORIA_PRODUCTO,DETALLE_COMPRA,PRODUCTO where cod_producto = id_producto AND cod_categoria_producto = id_categoria_producto group by cod_categoria_producto having sum(cantidad) = (select max(sumatoria) from (select sum(cantidad) as sumatoria from DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO where cod_producto = id_producto and id_categoria_producto = cod_categoria_producto group by cod_categoria_producto)T))
+(select categoria_producto,sum(sub_total),sum(cantidad) 
+	from CATEGORIA_PRODUCTO,DETALLE_COMPRA,PRODUCTO 
+	where cod_producto = id_producto 
+	AND cod_categoria_producto = id_categoria_producto group by cod_categoria_producto having sum(cantidad) = (select max(sumatoria) from (select sum(cantidad) as sumatoria from DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO where cod_producto = id_producto and id_categoria_producto = cod_categoria_producto group by cod_categoria_producto)T))
 union
-(select categoria_producto,sum(sub_total),sum(cantidad) from CATEGORIA_PRODUCTO,DETALLE_COMPRA,PRODUCTO where cod_producto = id_producto AND cod_categoria_producto = id_categoria_producto group by cod_categoria_producto having sum(cantidad) = (select min(sumatoria) from (select sum(cantidad) as sumatoria from DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO where cod_producto = id_producto and id_categoria_producto = cod_categoria_producto group by cod_categoria_producto)T));
+(select categoria_producto,sum(sub_total),sum(cantidad) 
+	from CATEGORIA_PRODUCTO,DETALLE_COMPRA,PRODUCTO 
+	where cod_producto = id_producto 
+	AND cod_categoria_producto = id_categoria_producto group by cod_categoria_producto having sum(cantidad) = (select min(sumatoria) from (select sum(cantidad) as sumatoria from DETALLE_COMPRA,PRODUCTO,CATEGORIA_PRODUCTO where cod_producto = id_producto and id_categoria_producto = cod_categoria_producto group by cod_categoria_producto)T));
 #Done_well
 
 /*CONSULTA_7
@@ -81,6 +98,11 @@ select cod_venta,nombre as Nombre_proveedor,telefono,total as Suma_total,sum(can
 Mostrar el top 10 de los clientes que más productos han comprado de la
 categoría ‘Seafood’.
 */
-select nombre as Top_Cliente,sum(cantidad) as cantidad from CLIENTE,COMPRA,DETALLE_COMPRA,PRODUCTO WHERE cod_compra = id_compra and cod_cliente = id_cliente and cod_producto = id_producto and cod_categoria_producto = (select id_categoria_producto from CATEGORIA_PRODUCTO WHERE categoria_producto = 'Seafood') group by nombre order by sum(cantidad) desc limit 10;
+select nombre as Top_Cliente,sum(cantidad) as cantidad 
+from CLIENTE,COMPRA,DETALLE_COMPRA,PRODUCTO 
+WHERE cod_compra = id_compra 
+and cod_cliente = id_cliente 
+and cod_producto = id_producto 
+and cod_categoria_producto = (select id_categoria_producto from CATEGORIA_PRODUCTO WHERE categoria_producto = 'Seafood') group by nombre order by sum(cantidad) desc limit 10;
 #Done_well
 
