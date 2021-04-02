@@ -151,11 +151,10 @@ fecha_inicio_tratamiento, fecha_fin_tratamiento) (
 
 );
 
-/**/
-INSERT INTO CONOCIDO (cod_victima,cod_asociado,fecha_conocido) (
-SELECT DISTINCT id_victima,id_personaAsociada,
-DATE_FORMAT(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s')
-FROM VICTIMA,PERSONA_ASOCIADA,TEMPORAL
+/*DEFINICION DE DATOS DE TABLA CONOCIDO-ASOCIADO QUE CONOCEN A LAS VICTIMAS*/
+INSERT INTO CONOCIDO (cod_victima,cod_asociado) (
+    SELECT DISTINCT id_victima,id_personaAsociada
+    FROM VICTIMA,PERSONA_ASOCIADA,TEMPORAL
 	WHERE NOMBRE_VICTIMA = nombre_v
 	AND APELLIDO_VICTIMA = apellido_v
     AND NOMBRE_ASOCIADO = nombreAsociado
@@ -164,9 +163,31 @@ FROM VICTIMA,PERSONA_ASOCIADA,TEMPORAL
 	AND APELLIDO_VICTIMA != ''
     AND NOMBRE_ASOCIADO != ''
     AND APELLIDO_ASOCIADO != ''
-    AND STR_TO_DATE(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s') is not null
-GROUP BY id_victima,id_personaAsociada,DATE_FORMAT(FECHA_CONOCIO,'%Y-%m-%d %H:%i:%s')
-    ORDER BY id_victima
+    GROUP BY id_victima,id_personaAsociada
+);
+
+/*DEFINICION DE DATOS EN REGISTRO DEL CONTACTO FISICON ENTRE LAS VICTIMAS
+Y SUS CONOCIDOS*/
+INSERT INTO CONTACTO_VICTIMA (cod_victima_cv,cod_asociado_cv,cod_tipoContacto,
+fecha_inicio_contacto,fecha_fin_contacto) (
+SELECT DISTINCT cod_victima,cod_asociado,id_tipoContacto,
+DATE_FORMAT(FECHA_INICIO_CONTACTO,'%Y-%m-%d %H:%i:%s'),
+DATE_FORMAT(FECHA_FIN_CONTACTO,'%Y-%m-%d %H:%i:%s')
+FROM TEMPORAL,CONOCIDO,VICTIMA,PERSONA_ASOCIADA,TIPO_CONTACTO
+WHERE NOMBRE_VICTIMA = nombre_v
+	AND APELLIDO_VICTIMA = apellido_v
+    AND NOMBRE_ASOCIADO = nombreAsociado
+    AND APELLIDO_ASOCIADO = apellidoAsociado
+	AND NOMBRE_VICTIMA != ''
+	AND APELLIDO_VICTIMA != ''
+    AND NOMBRE_ASOCIADO != ''
+    AND APELLIDO_ASOCIADO != ''
+    AND TEMPORAL.CONTACTO_FISICO != ''
+	AND cod_victima = id_victima
+    AND cod_asociado = id_personaAsociada
+    AND TIPO_CONTACTO.tipoContacto = TEMPORAL.CONTACTO_FISICO
+	AND STR_TO_DATE(FECHA_INICIO_CONTACTO,'%Y-%m-%d %H:%i:%s') is not null 
+    AND STR_TO_DATE(FECHA_FIN_CONTACTO,'%Y-%m-%d %H:%i:%s') is not null
 );
 
 #PRUEBA DE ERROR EN TABLA DE HOSPITAL CON UBICACION

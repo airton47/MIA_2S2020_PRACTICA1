@@ -124,24 +124,26 @@ CREATE TABLE TRATAMIENTO_VICTIMA (
 CREATE TABLE CONOCIDO (
     cod_victima int not null,
     cod_asociado int not null,
-    fecha_conocido datetime,
     CONSTRAINT pk_contacto PRIMARY KEY (cod_victima,cod_asociado),
     CONSTRAINT fk_victima_contacto FOREIGN KEY (cod_victima) REFERENCES VICTIMA (id_victima),
     CONSTRAINT fk_personaAsociada_contacto FOREIGN KEY (cod_asociado) REFERENCES PERSONA_ASOCIADA (id_personaAsociada)
 );
 
-
-CREATE TABLE DETALLE_VICTIMA_ASOCIADO (
-    cod_personaAsociada int not null,
-    cod_victima int not null
-    inicio_contacto datetime,
-    fin_contacto datetime,
+#TABLA CON REGISTRO DE CONTACTO FISICO ENTRE VICTIMA Y SUS CONOCIDOS
+CREATE TABLE CONTACTO_VICTIMA (
+    cod_contactoVic int not null AUTO_INCREMENT,
+    cod_victima_cv int,
+    cod_asociado_cv int,
     cod_tipoContacto int,
-    CONSTRAINT pk_detalle_personaAsociada PRIMARY KEY (cod_personaAsociada,cod_victima),
-    CONSTRAINT fk_personaAsociada_detalleVictimaAsociado FOREIGN KEY (cod_personaAsociada),
-    CONSTRAINT fk_victima_detalleVictimaAsociada FOREIGN KEY (cod_victima),
-    CONSTRAINT fk_tipoContacto_detalleVictimaAsociada FOREIGN KEY (cod_tipoContacto) REFERENCES TIPO_CONTACTO (id_tipoContacto)
+    fecha_inicio_contacto datetime,
+    fecha_fin_contacto datetime,
+    CONSTRAINT pk_detalle_personaAsociada PRIMARY KEY (cod_contactoVic),
+    CONSTRAINT fk_conocido_contactoVict1 FOREIGN KEY (cod_victima_cv) REFERENCES CONOCIDO (cod_victima),
+    CONSTRAINT fk_conocido_contactoVict2 FOREIGN KEY (cod_asociado_cv) REFERENCES CONOCIDO (cod_asociado),
+    CONSTRAINT fk_tipoContacto_contactoVict FOREIGN KEY (cod_tipoContacto) REFERENCES TIPO_CONTACTO (id_tipoContacto)
 );
+
+
 
 
 
