@@ -531,22 +531,236 @@ app.get('/cargarTemporal', async function(req,res){
 
 
 /* Mostrar consulta 1 */
+app.get('/consulta1',async function(req,res){
+    var sql = "SELECT hospital,ubicacion,count(id_victima) as Numero_fallecidos \
+        FROM HOSPITAL,UBICACION,VICTIMA,DIRECC_HOSPITAL\
+        WHERE id_ubicacion = DIRECC_HOSPITAL.cod_ubicacion\
+        AND id_hospital = DIRECC_HOSPITAL.cod_hospital\
+        AND id_hospital = VICTIMA.cod_hospital\
+        AND DATE_FORMAT(fecha_muerte,'%Y-%m-%d %H:%i:%s') IS NOT NULL\
+        GROUP BY hospital,ubicacion\
+        ORDER BY hospital\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 2 */
+app.get('/consulta2',async function(req,res){
+    var sql = "SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        FROM VICTIMA,ESTADO_VICTIMA,TRATAMIENTO,TRATAMIENTO_VICTIMA\
+        WHERE cod_estado = id_estadoVictima\
+        AND id_tratamiento = cod_tratamiento\
+        AND cod_victima = id_victima\
+        AND efectividad_victima > 5\
+        AND tratamiento LIKE 'Transfusiones de sangre'\
+        AND estadoVictima LIKE 'en cuarentena'\
+        ORDER BY nombre_v\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 3 */
+app.get('/consulta3',async function(req,res){
+    var sql = "SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO,ubicacion AS UBICACION\
+        ,count(cod_asociado) as total\
+        FROM VICTIMA,CONOCIDO,PERSONA_ASOCIADA,UBICACION\
+        WHERE id_victima = cod_victima\
+        AND id_personaAsociada = cod_asociado\
+        AND id_ubicacion = cod_direccion\
+        AND DATE_FORMAT(fecha_muerte,'%Y-%m-%d %H:%i:%s') IS NOT NULL\
+        GROUP BY nombre_v,apellido_v,ubicacion\
+        HAVING count(cod_asociado) > 3\
+        ORDER BY nombre_v\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 4 */
+app.get('/consulta4',async function(req,res){
+    var sql = "SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        ,count(cod_asociado) as total\
+        FROM VICTIMA,CONOCIDO,ESTADO_VICTIMA,TIPO_CONTACTO,CONTACTO_VICTIMA\
+        WHERE estadoVictima LIKE 'Sospecha'\
+        AND tipoContacto LIKE 'Beso'\
+        AND cod_tipoContacto = id_tipoContacto\
+        AND id_victima = cod_victima\
+        AND cod_victima = cod_victima_cv\
+        AND cod_asociado = cod_asociado_cv\
+        GROUP BY nombre_v,apellido_v\
+        HAVING count(cod_asociado) > 2\
+        ORDER BY nombre_v\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 5 */
+app.get('/consulta5',async function(req,res){
+    var sql = "SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        ,count(id_victima) as total\
+        FROM VICTIMA,TRATAMIENTO,TRATAMIENTO_VICTIMA\
+        WHERE tratamiento LIKE 'Oxígeno'\
+        AND id_victima = cod_victima\
+        AND id_tratamiento = cod_tratamiento\
+        GROUP BY nombre_v,apellido_v\
+        ORDER BY count(id_victima) DESC\
+        LIMIT 5 \
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 6 */
+app.get('/consulta6',async function(req,res){
+    /*Mostrar el nombre, el apellido y la fecha de fallecimiento de todas las
+    víctimas que se movieron por la dirección “1987 Delphine Well” a los cuales
+    se les aplicó "Manejo de la presión arterial" como tratamiento*/
+
+    var sql = "SELECT DISTINCT nombre_v as NOMBRE,apellido_v AS APELLIDO,fecha_muerte\
+        FROM VICTIMA,TRATAMIENTO,TRATAMIENTO_VICTIMA,UBICACION_VICTIMA,UBICACION\
+        WHERE UBICACION_VICTIMA.cod_victima = id_victima\
+        AND UBICACION_VICTIMA.cod_ubicacion = id_ubicacion\
+        AND TRATAMIENTO_VICTIMA.cod_victima = id_victima\
+        AND TRATAMIENTO_VICTIMA.cod_tratamiento = id_tratamiento\
+        AND tratamiento LIKE 'Manejo de la presión arterial'\
+        AND DATE_FORMAT(fecha_muerte,'%Y-%m-%d %H:%i:%s') IS NOT NULL\
+        ORDER BY nombre_v\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 7 */
+app.get('/consulta7',async function(req,res){
+    /*Mostrar nombre, apellido y dirección de las víctimas que tienen menos de 2
+    allegados los cuales hayan estado en un hospital y que se le hayan aplicado
+    únicamente dos tratamientos*/
+    var sql = "";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 8 */
+app.get('/consulta8',async function(req,res){
+    /*Mostrar el número de mes ,de la fecha de la primera sospecha, nombre y
+    apellido de las víctimas que más tratamientos se han aplicado y las que
+    menos. (Todo en una sola consulta)*/
+    var sql = "(SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        ,COUNT(id_victima) as TOTAL\
+        FROM VICTIMA,TRATAMIENTO_VICTIMA\
+        WHERE id_victima = cod_victima\
+        GROUP BY nombre_v,apellido_v ORDER BY COUNT(id_victima) DESC limit 5)\
+        UNION\
+        (SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        ,COUNT(id_victima) as TOTAL\
+        FROM VICTIMA,TRATAMIENTO_VICTIMA\
+        WHERE id_victima = cod_victima\
+        GROUP BY nombre_v,apellido_v ORDER BY COUNT(id_victima) ASC limit 5)\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 9 */
+app.get('/consulta9',async function(req,res){
+    /*Mostrar el porcentaje de víctimas que le corresponden a cada hospital*/
+    var sql = "(SELECT cod_hospital AS HOSPITAL,\
+        (count(id_victima)/(SELECT COUNT(id_victima) FROM VICTIMA))*100 as PORCENTAJE\
+        FROM VICTIMA\
+        WHERE cod_hospital is null\
+        GROUP BY cod_hospital\
+        ORDER BY PORCENTAJE DESC)\
+        union\
+        (SELECT hospital AS HOSPITAL,\
+        ((COUNT(id_victima))/(SELECT COUNT(id_victima) FROM VICTIMA))*100  as PORCENTAJE\
+        FROM HOSPITAL,VICTIMA\
+        WHERE cod_hospital = id_hospital\
+        GROUP BY hospital)\
+        ;";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 
 /* Mostrar consulta 10 */
+app.get('/consulta10',async function(req,res){
+    /*Mostrar el porcentaje del contacto físico más común de cada hospital de la
+    siguiente manera: nombre de hospital, nombre del contacto físico, porcentaje
+    de víctimas*/
+    var sql = "";
+    var consulta = connection.query(sql,async function(error,result){
+        if(error){
+            console.log("Error al conectar sql, exist?...");
+            res.end("Error al conectar sql, exist?...");
+        }else{
+            console.log(JSON.stringify(result));
+            res.send(result);
+        }
+    });
+});
 

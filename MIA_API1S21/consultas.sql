@@ -69,7 +69,7 @@ ORDER BY nombre_v
 SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO
 ,count(id_victima) as total
 FROM VICTIMA,TRATAMIENTO,TRATAMIENTO_VICTIMA
-WHERE tratamiento LIKE 'Manejo de la presion arterial'
+WHERE tratamiento LIKE 'Oxígeno'
 AND id_victima = cod_victima
 AND id_tratamiento = cod_tratamiento
 GROUP BY nombre_v,apellido_v
