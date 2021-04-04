@@ -147,11 +147,3 @@ CREATE TABLE CONTACTO_VICTIMA (
 
 
 
-
-CREATE TABLE REGISTRO (
-    id_registro int not null AUTO_INCREMENT,
-    cod_victima int,
-    entrada datetime,
-    salida datetime
-);
-

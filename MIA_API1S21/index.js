@@ -119,7 +119,7 @@ app.get('/cargarModelo', async function(req,res){
     var sql = "CREATE TABLE UBICACION (\
         id_ubicacion int not null AUTO_INCREMENT,\
         ubicacion varchar(50),\
-        CONSTRAINT pk_ubicacion PRIMARY KEY (cod_ubicacion)\
+        CONSTRAINT pk_ubicacion PRIMARY KEY (id_ubicacion)\
         );";
         var consulta = connection.query(sql,async function(err,result){
             if(err) throw err;
@@ -374,17 +374,20 @@ app.get('/cargarModelo', async function(req,res){
         });
 
     sql = "INSERT INTO UBICACION_VICTIMA (cod_victima,cod_ubicacion,fecha_llegada,fecha_retiro) (\
-        SELECT DISTINCT id_victima,id_ubicacion,\
+        SELECT id_victima, id_ubicacion,\
         STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s'),\
         STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s')\
         FROM TEMPORAL,UBICACION,VICTIMA\
-        WHERE nombre_v = NOMBRE_VICTIMA\
+        WHERE UBICACION_VICTIMA = UBICACION.ubicacion\
+        AND nombre_v = NOMBRE_VICTIMA\
         AND apellido_v = APELLIDO_VICTIMA\
-        AND DIRECCION_VICTIMA = ubicacion\
-        AND DIRECCION_VICTIMA != ''\
-        AND NOMBRE_VICTIMA != ''\
-        AND APELLIDO_VICTIMA != ''\
-        AND STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s') is not null AND STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s') is not null\
+        AND NOMBRE_VICTIMA NOT LIKE ''\
+        AND APELLIDO_VICTIMA NOT LIKE ''\
+        AND UBICACION_VICTIMA NOT LIKE ''\
+        AND STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s') is not null \
+        AND STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s') is not null\
+        GROUP BY id_victima,id_ubicacion,\
+        FECHA_LLEGADA,FECHA_RETIRO\
         );";
         var consulta = connection.query(sql,async function(err,result){
             if(err) throw err;
@@ -452,9 +455,10 @@ app.get('/cargarModelo', async function(req,res){
         var consulta = connection.query(sql,async function(err,result){
             if(err) throw err;
             console.log('INSERT INTO CONTACTO_VICTIMA, exitosa!...');
+            console.log('BASE DE DATOS CARGADA COMPLETAMENTE!');
         });
     /* FIN DE CARGA DE DATOS A TABLA TEMPORAL>>>>>>>>> */
-
+    
     res.send('Modelo de Base de Datos creado con Exito!');
     
 });
@@ -664,8 +668,9 @@ app.get('/consulta6',async function(req,res){
         AND UBICACION_VICTIMA.cod_ubicacion = id_ubicacion\
         AND TRATAMIENTO_VICTIMA.cod_victima = id_victima\
         AND TRATAMIENTO_VICTIMA.cod_tratamiento = id_tratamiento\
+        AND ubicacion LIKE '1987 Delphine Well'\
         AND tratamiento LIKE 'Manejo de la presión arterial'\
-        AND DATE_FORMAT(fecha_muerte,'%Y-%m-%d %H:%i:%s') IS NOT NULL\
+        #AND DATE_FORMAT(fecha_muerte,'%Y-%m-%d %H:%i:%s') IS NOT NULL\
         ORDER BY nombre_v\
         ;";
     var consulta = connection.query(sql,async function(error,result){
@@ -701,17 +706,17 @@ app.get('/consulta8',async function(req,res){
     /*Mostrar el número de mes ,de la fecha de la primera sospecha, nombre y
     apellido de las víctimas que más tratamientos se han aplicado y las que
     menos. (Todo en una sola consulta)*/
-    var sql = "(SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+    var sql = "(SELECT MONTHNAME(fecha_registro) AS MES, nombre_v as NOMBRE,apellido_v AS APELLIDO\
         ,COUNT(id_victima) as TOTAL\
         FROM VICTIMA,TRATAMIENTO_VICTIMA\
         WHERE id_victima = cod_victima\
-        GROUP BY nombre_v,apellido_v ORDER BY COUNT(id_victima) DESC limit 5)\
+        GROUP BY fecha_registro,nombre_v,apellido_v ORDER BY COUNT(id_victima) DESC limit 5)\
         UNION\
-        (SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
+        (SELECT MONTHNAME(fecha_registro) AS MES,nombre_v as NOMBRE,apellido_v AS APELLIDO\
         ,COUNT(id_victima) as TOTAL\
         FROM VICTIMA,TRATAMIENTO_VICTIMA\
         WHERE id_victima = cod_victima\
-        GROUP BY nombre_v,apellido_v ORDER BY COUNT(id_victima) ASC limit 5)\
+        GROUP BY fecha_registro,nombre_v,apellido_v ORDER BY COUNT(id_victima) ASC limit 5)\
         ;";
     var consulta = connection.query(sql,async function(error,result){
         if(error){
