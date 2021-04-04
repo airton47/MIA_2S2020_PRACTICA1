@@ -10,3 +10,6 @@ Mostrar el nombre y apellido de todas las víctimas en estado “Suspendida”
 que tuvieron contacto físico de tipo “Beso” con más de 2 de sus asociados.
 Ocurrió un error de redacción por lo que en estado ya no es "Suspedida"
 sino que debe ser "Sospecha"
+
+#CONSULTA 1 CHECADA Y CORRECTA
+#CONSULTA 4 DOBLE CHECADA Y CORRECTA

@@ -601,18 +601,22 @@ app.get('/consulta3',async function(req,res){
 
 /* Mostrar consulta 4 */
 app.get('/consulta4',async function(req,res){
-    var sql = "SELECT nombre_v as NOMBRE,apellido_v AS APELLIDO\
-        ,count(cod_asociado) as total\
-        FROM VICTIMA,CONOCIDO,ESTADO_VICTIMA,TIPO_CONTACTO,CONTACTO_VICTIMA\
+    var sql = "SELECT nombre_v AS NOMBRE,apellido_v AS APELLIDO\
+        ,estadoVictima,tipoContacto \
+        FROM TIPO_CONTACTO,PERSONA_ASOCIADA,VICTIMA,ESTADO_VICTIMA,CONOCIDO,\
+            (SELECT cod_victima_cv as victim,cod_asociado_cv as asociated,cod_tipoContacto as contact\
+            FROM CONTACTO_VICTIMA\
+            GROUP BY cod_victima_cv,cod_asociado_cv,cod_tipoContacto)T\
         WHERE estadoVictima LIKE 'Sospecha'\
-        AND tipoContacto LIKE 'Beso'\
-        AND cod_tipoContacto = id_tipoContacto\
-        AND id_victima = cod_victima\
-        AND cod_victima = cod_victima_cv\
-        AND cod_asociado = cod_asociado_cv\
-        GROUP BY nombre_v,apellido_v\
-        HAVING count(cod_asociado) > 2\
-        ORDER BY nombre_v\
+        AND contact = 6\
+        AND victim = cod_victima\
+        AND id_tipoContacto = contact\
+        AND asociated = cod_asociado\
+        AND cod_victima = id_victima\
+        AND cod_asociado = id_personaAsociada\
+        AND cod_estado = id_estadoVictima\
+        group by nombre_v,apellido_v,estadoVictima,tipoContacto\
+        HAVING count(id_victima) > 2\
         ;";
     var consulta = connection.query(sql,async function(error,result){
         if(error){
@@ -723,19 +727,11 @@ app.get('/consulta8',async function(req,res){
 /* Mostrar consulta 9 */
 app.get('/consulta9',async function(req,res){
     /*Mostrar el porcentaje de víctimas que le corresponden a cada hospital*/
-    var sql = "(SELECT cod_hospital AS HOSPITAL,\
-        (count(id_victima)/(SELECT COUNT(id_victima) FROM VICTIMA))*100 as PORCENTAJE\
-        FROM VICTIMA\
-        WHERE cod_hospital is null\
-        GROUP BY cod_hospital\
-        ORDER BY PORCENTAJE DESC)\
-        union\
-        (SELECT hospital AS HOSPITAL,\
-        ((COUNT(id_victima))/(SELECT COUNT(id_victima) FROM VICTIMA))*100  as PORCENTAJE\
+    var sql = "(SELECT hospital AS HOSPITAL,\
+        ((COUNT(id_victima))/(SELECT COUNT(id_victima) FROM VICTIMA WHERE cod_hospital is not null))*100  as PORCENTAJE\
         FROM HOSPITAL,VICTIMA\
         WHERE cod_hospital = id_hospital\
-        GROUP BY hospital)\
-        ;";
+        GROUP BY hospital);";
     var consulta = connection.query(sql,async function(error,result){
         if(error){
             console.log("Error al conectar sql, exist?...");
@@ -762,5 +758,9 @@ app.get('/consulta10',async function(req,res){
             res.send(result);
         }
     });
+});
+
+app.listen(app.get('port'),()=>{
+    console.log('Server en puerto '+app.get('port'));
 });
 

@@ -175,3 +175,19 @@ GROUP BY hospital,tipoContacto)T
 SELECT * FROM CONTACTO_VICTIMA;
 SELECT COUNT(*) FROM CONTACTO_VICTIMA;
 
+##############################
+#10
+/*Mostrar el porcentaje del contacto físico más común de cada hospital de la
+siguiente manera: nombre de hospital, nombre del contacto físico, porcentaje
+de víctimas*/
+SELECT hos,tipo,(cuenta) from (SELECT hospital as hos,tipoContacto as tipo,count(id_victima) as cuenta
+FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO
+WHERE id_hospital = cod_hospital
+AND id_victima = cod_victima
+AND cod_victima = cod_victima_cv
+AND cod_asociado = cod_asociado_cv
+AND cod_tipoContacto = id_tipoContacto
+GROUP BY hospital,tipoContacto)T
+;
+
+

@@ -120,18 +120,20 @@ fecha_muerte,cod_direccion,cod_estado) (
 
 /*DEFINICION DE DATOS EN TABLA QUE CONTIENE LAS UBICACION EN LAS QUE LA VICTIMA HA ESTADO*/#**
 INSERT INTO UBICACION_VICTIMA (cod_victima,cod_ubicacion,fecha_llegada,fecha_retiro) (
-	SELECT DISTINCT id_victima,id_ubicacion,
+    SELECT id_victima, id_ubicacion,
     STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s'),
     STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s')
-	FROM TEMPORAL,UBICACION,VICTIMA
-	WHERE nombre_v = NOMBRE_VICTIMA
-	AND apellido_v = APELLIDO_VICTIMA
-	AND DIRECCION_VICTIMA = ubicacion
-    AND DIRECCION_VICTIMA != ''
-	AND NOMBRE_VICTIMA != ''
-	AND APELLIDO_VICTIMA != ''
-	AND STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s') is not null AND STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s') is not null
-
+    FROM TEMPORAL,UBICACION,VICTIMA
+    WHERE UBICACION_VICTIMA = UBICACION.ubicacion
+    AND nombre_v = NOMBRE_VICTIMA
+    AND apellido_v = APELLIDO_VICTIMA
+    AND NOMBRE_VICTIMA NOT LIKE ''
+    AND APELLIDO_VICTIMA NOT LIKE ''
+    AND UBICACION_VICTIMA NOT LIKE ''
+    AND STR_TO_DATE(FECHA_LLEGADA,'%Y-%m-%d %H:%i:%s') is not null 
+    AND STR_TO_DATE(FECHA_RETIRO,'%Y-%m-%d %H:%i:%s') is not null
+    GROUP BY id_victima,id_ubicacion,
+    FECHA_LLEGADA,FECHA_RETIRO
 );
 
 /*DEFINICION DE DATOS EN TRATAMIENTO_VICTIMA*/
