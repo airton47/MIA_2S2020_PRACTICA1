@@ -20,9 +20,9 @@ SELECT * FROM CONTACTO_VICTIMA;
 #TRUNCATE VICTIMA;
 
 #
-SET @@time_zone = 'SYSTEM';
-UPDATE TEMPORAL SET FECHA_MUERTE = NULL WHERE DATE_FORMAT('0000-00-00 00:00:00','%d-%m-%Y %H:%i:%s') ;
-UPDATE TEMPORAL SET FECHA_MUERTE = NULL WHERE CAST(FECHA_MUERTE AS CHAR(20)) = '0000-00-00 00:00:00';
+#SET @@time_zone = 'SYSTEM';
+#UPDATE TEMPORAL SET FECHA_MUERTE = NULL WHERE DATE_FORMAT('0000-00-00 00:00:00','%d-%m-%Y %H:%i:%s') ;
+#UPDATE TEMPORAL SET FECHA_MUERTE = NULL WHERE CAST(FECHA_MUERTE AS CHAR(20)) = '0000-00-00 00:00:00';
 
 SELECT DISTINCT FECHA_PRIMERA_SOSPECHA, CAST(FECHA_PRIMERA_SOSPECHA as DATETIME)
 FROM TEMPORAL
@@ -131,8 +131,6 @@ GROUP BY nombre_v,apellido_v ORDER BY COUNT(id_victima) ASC limit 5);
 
 #9-state:P
 /*Mostrar el porcentaje de víctimas que le corresponden a cada hospital*/
-
-
 (SELECT cod_hospital AS HOSPITAL,
 (count(id_victima)/(SELECT COUNT(id_victima) FROM VICTIMA))*100 as PORCENTAJE
 FROM VICTIMA
@@ -146,48 +144,58 @@ FROM HOSPITAL,VICTIMA
 WHERE cod_hospital = id_hospital
 GROUP BY hospital);
 
-#10-state:P
-/*Mostrar el porcentaje del contacto físico más común de cada hospital de la
-siguiente manera: nombre de hospital, nombre del contacto físico, porcentaje
-de víctimas*/
-SELECT hospital, count(cod_contactoVic) as TOTAL
-FROM HOSPITAL,VICTIMA,CONTACTO_VICTIMA,TIPO_CONTACTO,CONOCIDO,PERSONA_ASOCIADA
-WHERE cod_hospital = cod_hospital#PARA JOIN CON HOSPITAL
-AND CONTACTO_VICTIMA.cod_victima_cv =  CONOCIDO.cod_victima
-AND CONTACTO_VICTIMA.cod_asociado_cv = CONOCIDO.cod_asociado
-AND CONOCIDO.cod_asociado = id_personaAsociada
-AND CONOCIDO.cod_victima = id_victima
-AND id_tipoContacto = cod_tipoContacto
-GROUP BY hospital,tipoContacto,cod_victima_cv;
-
-SELECT MAX(TOTAL) FROM 
-(SELECT count(cod_contactoVic) as TOTAL
-FROM HOSPITAL,VICTIMA,CONTACTO_VICTIMA,TIPO_CONTACTO,CONOCIDO,PERSONA_ASOCIADA
-WHERE cod_hospital = cod_hospital#PARA JOIN CON HOSPITAL
-AND CONTACTO_VICTIMA.cod_victima_cv =  CONOCIDO.cod_victima
-AND CONTACTO_VICTIMA.cod_asociado_cv = CONOCIDO.cod_asociado
-AND CONOCIDO.cod_asociado = id_personaAsociada
-AND CONOCIDO.cod_victima = id_victima
-AND id_tipoContacto = cod_tipoContacto
-GROUP BY hospital,tipoContacto)T
-
+#7
+/*Mostrar nombre, apellido y dirección de las víctimas que tienen menos de 2
+allegados los cuales hayan estado en un hospital y que se le hayan aplicado
+únicamente dos tratamientos*/
+SELECT NOMBRE,APELLIDO,DIRECCION
+FROM (
+	SELECT nombre_v as NOMBRE,
+    apellido_v as APELLIDO,
+    ubicacion as DIRECCION,
+    cod_tratamiento as cod
+	FROM VICTIMA,UBICACION,TRATAMIENTO_VICTIMA,CONOCIDO
+	WHERE id_ubicacion = cod_direccion
+	AND id_victima = TRATAMIENTO_VICTIMA.cod_victima
+	AND CONOCIDO.cod_victima = id_victima
+	GROUP BY nombre_v,apellido_v,ubicacion,cod_tratamiento
+	HAVING count(cod_asociado) < 2
+)T
+GROUP BY NOMBRE,APELLIDO,DIRECCION
+HAVING count(cod) = 2
 ;
-SELECT * FROM CONTACTO_VICTIMA;
-SELECT COUNT(*) FROM CONTACTO_VICTIMA;
 
-##############################
 #10
-/*Mostrar el porcentaje del contacto físico más común de cada hospital de la
-siguiente manera: nombre de hospital, nombre del contacto físico, porcentaje
-de víctimas*/
-SELECT hos,tipo,(cuenta) from (SELECT hospital as hos,tipoContacto as tipo,count(id_victima) as cuenta
-FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO
-WHERE id_hospital = cod_hospital
-AND id_victima = cod_victima
-AND cod_victima = cod_victima_cv
-AND cod_asociado = cod_asociado_cv
-AND cod_tipoContacto = id_tipoContacto
-GROUP BY hospital,tipoContacto)T
+SELECT hos2 AS HOSPITAL,ty1 AS TIPO,(maximo2) AS TOTAL FROM
+(
+	SELECT hos AS hos1,tipo AS ty1,(cuenta) AS cuenta1
+	from (
+		SELECT hospital AS hos,tipoContacto tipo,COUNT(id_victima) AS cuenta
+		FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO
+		WHERE id_hospital = cod_hospital
+		AND id_victima = cod_victima
+		AND cod_victima = cod_victima_cv
+		AND cod_asociado = cod_asociado_cv
+		AND cod_tipoContacto = id_tipoContacto
+		GROUP BY hospital,tipoContacto
+	)T
+)C1,
+(
+	SELECT hos AS hos2,MAX(cuenta) AS maximo2
+	FROM (
+		SELECT hospital AS hos,tipoContacto tipo,COUNT(id_victima) AS cuenta
+		FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO
+		WHERE id_hospital = cod_hospital
+		AND id_victima = cod_victima
+		AND cod_victima = cod_victima_cv
+		AND cod_asociado = cod_asociado_cv
+		AND cod_tipoContacto = id_tipoContacto
+		GROUP BY hospital,tipoContacto
+	)T
+	GROUP BY hos
+)C2
+WHERE hos1 = hos2 AND cuenta1 = maximo2
+GROUP BY hos1,maximo2,ty1
+HAVING maximo2 = MAX(maximo2)
 ;
-
 

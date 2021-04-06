@@ -551,6 +551,7 @@ app.get('/consulta1',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -574,6 +575,7 @@ app.get('/consulta2',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -598,6 +600,7 @@ app.get('/consulta3',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -628,6 +631,7 @@ app.get('/consulta4',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -651,6 +655,7 @@ app.get('/consulta5',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -679,6 +684,7 @@ app.get('/consulta6',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -689,13 +695,29 @@ app.get('/consulta7',async function(req,res){
     /*Mostrar nombre, apellido y dirección de las víctimas que tienen menos de 2
     allegados los cuales hayan estado en un hospital y que se le hayan aplicado
     únicamente dos tratamientos*/
-    var sql = "";
+    var sql = "SELECT NOMBRE,APELLIDO,DIRECCION\
+        FROM (\
+            SELECT nombre_v as NOMBRE,\
+            apellido_v as APELLIDO,\
+            ubicacion as DIRECCION,\
+            cod_tratamiento as cod\
+            FROM VICTIMA,UBICACION,TRATAMIENTO_VICTIMA,CONOCIDO\
+            WHERE id_ubicacion = cod_direccion\
+            AND id_victima = TRATAMIENTO_VICTIMA.cod_victima\
+            AND CONOCIDO.cod_victima = id_victima\
+            GROUP BY nombre_v,apellido_v,ubicacion,cod_tratamiento\
+            HAVING count(cod_asociado) < 2\
+        )T\
+        GROUP BY NOMBRE,APELLIDO,DIRECCION\
+        HAVING count(cod) = 2\
+        ;";
     var consulta = connection.query(sql,async function(error,result){
         if(error){
             console.log("Error al conectar sql, exist?...");
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -724,6 +746,7 @@ app.get('/consulta8',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -743,6 +766,7 @@ app.get('/consulta9',async function(req,res){
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
@@ -753,13 +777,45 @@ app.get('/consulta10',async function(req,res){
     /*Mostrar el porcentaje del contacto físico más común de cada hospital de la
     siguiente manera: nombre de hospital, nombre del contacto físico, porcentaje
     de víctimas*/
-    var sql = "";
+    var sql = "SELECT hos2 AS HOSPITAL,ty1 AS TIPO,(maximo2) AS TOTAL FROM\
+        (\
+            SELECT hos AS hos1,tipo AS ty1,(cuenta) AS cuenta1\
+            from (\
+                SELECT hospital AS hos,tipoContacto tipo,COUNT(id_victima) AS cuenta\
+                FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO\
+                WHERE id_hospital = cod_hospital\
+                AND id_victima = cod_victima\
+                AND cod_victima = cod_victima_cv\
+                AND cod_asociado = cod_asociado_cv\
+                AND cod_tipoContacto = id_tipoContacto\
+                GROUP BY hospital,tipoContacto\
+            )T\
+        )C1,\
+        (\
+            SELECT hos AS hos2,MAX(cuenta) AS maximo2\
+            FROM (\
+                SELECT hospital AS hos,tipoContacto tipo,COUNT(id_victima) AS cuenta\
+                FROM HOSPITAL,VICTIMA,CONOCIDO,CONTACTO_VICTIMA,TIPO_CONTACTO\
+                WHERE id_hospital = cod_hospital\
+                AND id_victima = cod_victima\
+                AND cod_victima = cod_victima_cv\
+                AND cod_asociado = cod_asociado_cv\
+                AND cod_tipoContacto = id_tipoContacto\
+                GROUP BY hospital,tipoContacto\
+            )T\
+            GROUP BY hos\
+        )C2\
+        WHERE hos1 = hos2 AND cuenta1 = maximo2\
+        GROUP BY hos1,maximo2,ty1\
+        HAVING maximo2 = MAX(maximo2)\
+        ;";
     var consulta = connection.query(sql,async function(error,result){
         if(error){
             console.log("Error al conectar sql, exist?...");
             res.end("Error al conectar sql, exist?...");
         }else{
             console.log(JSON.stringify(result));
+            console.log('Succssess!');
             res.send(result);
         }
     });
